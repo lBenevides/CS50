@@ -59,7 +59,7 @@ Grupos =  {
 @login_required
 def index():
     """Show portfolio of stocks"""
-    return render_template("index.html")
+    return redirect("farol")
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -133,6 +133,13 @@ def register():
     else:
         return render_template("register.html")
 
+
+
+
+####################################################################################
+################# as funções abaixo são referentes a pagina farol ##################
+
+# essa função serve para restrição de acesso de usuário
 @app.route("/farol", methods=["GET", "POST"])
 @login_required
 def farol():
@@ -157,6 +164,7 @@ def farol():
 
         return render_template("farol.html", groups=Grupos, result = result)
 
+# função serve para passar informações dos setores nas Modal Box
 @app.route("/novo", methods=["POST"])
 @login_required
 def novo():
@@ -166,12 +174,8 @@ def novo():
 
     return jsonify({"setor": result})
 
-@app.route("/f_editar", methods=["POST"])
-@login_required
-def f_editar():
-    return 
 
-
+# função para passar as cargos apos a seleção do setor na modal box
 @app.route("/cargo", methods=["POST"])
 @login_required
 def cargo():
@@ -181,7 +185,7 @@ def cargo():
 
     return jsonify({"cargos": result})
 
-
+# função acompanha o botão novo, para salvar as informações do novo colaborador
 @app.route("/salvar", methods=["POST"])
 @login_required
 def salvar():
@@ -194,13 +198,64 @@ def salvar():
     f_risco_e = request.form["risco_e"]
 
     cursor.execute("INSERT INTO farol (grupo, unidade, nome, cargo, risco_c, risco_e) VALUES (?,?,?,?,?,?)",[ f_grupo, f_unidade, f_nome, f_cargo, f_risco_c, f_risco_e ])
+    lastid = cursor.lastrowid
+    db.commit()
+    print(lastid)
+
+    return jsonify({'id': lastid})
+
+##### abaixo são as funções do FAROL referente a edição de linha #####
+
+# função ao clicar o botão de editar passar as informações para a modal box
+@app.route("/f_editar", methods=["POST"])
+@login_required
+def f_editar():
+    cursor.execute("SELECT * FROM farol WHERE id=?", [request.form["colab_id"]])
+    result = cursor.fetchone()
+
+    cursor.execute("SELECT DISTINCT field FROM positions ORDER BY field")
+    setor = cursor.fetchall()
+
+    cursor.execute("SELECT field FROM positions where Position=?", [result[4]])
+    setor_c = cursor.fetchone()
+
+    cursor.execute("SELECT position from positions where field=?", [setor_c[0]])
+    cargos = cursor.fetchall()
+    
+
+    return jsonify({'result': result, 'setor': setor, 'setor_c' : setor_c, 'cargos' : cargos})
+
+
+#função para ATUALIZAR as informações que foram digitadas na modal box de edição
+@app.route("/atualizar", methods=["POST"])
+@login_required
+def atualizar():
+    nome = request.form["nome"]
+    cargo = request.form["cargo"]
+    risco_c = request.form["risco_c"]
+    risco_e = request.form["risco_e"]
+    colab_id = request.form["colab_id"]
+
+    cursor.execute("UPDATE farol SET nome=?, cargo=?, risco_c=?, risco_e=? WHERE id=?",[nome, cargo, risco_c, risco_e, colab_id])
     db.commit()
 
-    return jsonify({"Success": "Success"})
+    return jsonify({'sucess':'sucess'})
+
+
+# função ao clicar o botão deletar no farol, para del uma linha
+@app.route("/deletar", methods=["POST"])
+@login_required
+def deletar():
+
+    cursor.execute("DELETE FROM farol WHERE id=?",request.form["colab_id"])
+    db.commit()
+
+    return jsonify({'success':'sucess'})
 
 
 
-
+##############################################################
+############# codigo da pag Admin irão abaixo ################
 
 @app.route("/admin", methods=["GET", "POST"])
 @login_required
@@ -237,7 +292,6 @@ def update():
     result = cursor.fetchone()
 
     return jsonify({'result' : result})
-
 
 
 
