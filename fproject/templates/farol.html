@@ -1,0 +1,501 @@
+{% extends "layout.html" %}
+
+
+{% block title %}
+History
+{% endblock %}
+
+{% block script %}
+<script>
+  $(document).ready(function() {
+    colab_id = 0;
+        
+        $('#group').change(function() {
+
+            g_unit = document.querySelector('#group').value
+            console.log(g_unit);
+
+            req = $.ajax({
+                url : '/farol',
+                type : 'POST',
+                data: { g_unit : g_unit}
+            });
+
+            req.done(function(data) {
+              size = data.g_unit.length;
+
+              var select = document.getElementById('unit');
+
+              while (select.hasChildNodes()) {
+                  select.removeChild(select.lastChild);
+              }
+
+              for (i=0; i < size; i++) {
+                  var option = document.createElement('option');
+                  text = document.createTextNode(data.g_unit[i]);
+
+                  option.appendChild(text);
+                  option.value = data.g_unit[i];
+                  option.size = "15";
+
+                  select.appendChild(option);
+                  // <!-- <option id="unit" type="text" class ="form-control"  size="15" required></option> -->
+              }; 
+            })
+        }); 
+        
+        $('#Novo').on('click', function() {
+
+            req = $.ajax({
+                url : '/novo',
+                type: 'POST',
+            });
+
+            req.done(function(data) {
+
+              setor = data.setor
+              console.log(setor)
+
+              var select = document.getElementById('setor');
+
+              while (select.hasChildNodes()) {
+                  select.removeChild(select.lastChild);
+              }
+
+              for (i=0; i < setor.length; i++) {
+                  var option = document.createElement('option');
+                  text = document.createTextNode(data.setor[i]);
+
+                  option.appendChild(text);
+                  option.value = data.setor[i];
+                  option.size = "15";
+
+                  select.appendChild(option);
+                  // <!-- <option id="unit" type="text" class ="form-control"  size="15" required></option> -->
+              };
+            })
+        });
+        
+        $('#setor').change(function() {
+
+          setor_value = document.querySelector('#setor').value;
+          console.log(setor_value);
+
+          req= $.ajax({
+            url : '/cargo',
+            type : 'POST',
+            data : {setor_value : setor_value}
+          });
+
+          req.done(function(data) {
+
+            cargo = data.cargos;
+            console.log(cargo.length);
+            var select = document.getElementById('cargo');
+
+            while (select.hasChildNodes()) {
+                select.removeChild(select.lastChild);
+            }
+
+            for (i = 0; i < cargo.length; i++) {
+                var option = document.createElement('option');
+                text = document.createTextNode(cargo[i]);
+
+                option.appendChild(text);
+                option.value = cargo[i];
+                option.size = "15";
+
+                select.appendChild(option);
+            };  
+          })
+        })
+    
+        $('#Salvar').on('click', function() {
+          grupo = document.querySelector('#group').value;
+          unidade = document.querySelector('#unit').value;
+          nome = document.querySelector('#Nome').value;
+          cargo = document.querySelector('#cargo').value;
+          risco_c = document.querySelector('#risco_c').value;
+          risco_e = document.querySelector('#risco_e').value;
+
+          if (unidade != '' && nome != '' && cargo != '') {
+
+            req = $.ajax({
+              url : '/salvar',
+              type : 'POST',
+              data : { grupo : grupo, unidade : unidade, nome : nome, cargo : cargo, risco_c : risco_c, risco_e : risco_e }
+            });
+            
+            req.done(function(data){
+              location.reload();
+
+
+            });
+          }
+        
+        });
+
+        $('.Editar').on('click', function() {
+          colab_id = $(this).closest('tr').attr('id');
+          
+          req = $.ajax({
+            url : '/f_editar',
+            type : 'POST',
+            data : {colab_id : colab_id}
+          });
+          
+          req.done(function(data) {
+            document.querySelector('#e_Nome').value = data.result[3];
+            document.querySelector('#e_risco_c').value = data.result[6];
+            document.querySelector('#e_risco_e').value = data.result[7];
+
+            setor = data.setor
+            console.log(setor)
+
+            var select = document.getElementById('e_setor');
+
+            while (select.hasChildNodes()) {
+                select.removeChild(select.lastChild);
+            }
+
+            for (i=0; i < setor.length; i++) {
+                var option = document.createElement('option');
+                text = document.createTextNode(data.setor[i]);
+
+                option.appendChild(text);
+                option.value = data.setor[i];
+                option.size = "15";
+                option.id = data.setor[i];
+
+                select.appendChild(option);
+            };
+            document.getElementById(data.setor_c).selected = true;
+            cargo = data.cargos;
+            console.log(cargo.length);
+            var select = document.getElementById('e_cargo');
+
+            while (select.hasChildNodes()) {
+                select.removeChild(select.lastChild);
+            }
+
+            for (i = 0; i < cargo.length; i++) {
+                var option = document.createElement('option');
+                text = document.createTextNode(cargo[i]);
+
+                option.appendChild(text);
+                option.value = cargo[i];
+                if (option.value == data.result[4]) {
+                  option.selected = true;
+                }
+                else {
+                  option.selected = false;
+                }
+                option.size = "15";
+                
+
+                select.appendChild(option);
+            };  
+         
+         
+         
+         
+          });
+
+        });
+        
+        $('#e_setor').change(function(setor) {
+
+          setor_value = document.querySelector('#e_setor').value;
+          console.log(setor_value);
+
+          req= $.ajax({
+            url : '/cargo',
+            type : 'POST',
+            data : {setor_value : setor_value}
+          });
+
+          req.done(function(data) {
+
+            cargo = data.cargos;
+            console.log(cargo.length);
+            var select = document.getElementById('e_cargo');
+
+            while (select.hasChildNodes()) {
+                select.removeChild(select.lastChild);
+            }
+
+            for (i = 0; i < cargo.length; i++) {
+                var option = document.createElement('option');
+                text = document.createTextNode(cargo[i]);
+
+                option.appendChild(text);
+                option.value = cargo[i];
+                option.size = "15";
+
+                select.appendChild(option);
+            };  
+          });
+        });
+    
+        $('#Atualizar').on('click', function() {
+          nome = document.querySelector('#e_Nome').value;
+          cargo = document.querySelector('#e_cargo').value;
+          risco_c = document.querySelector('#e_risco_c').value;
+          risco_e = document.querySelector('#e_risco_e').value;
+
+          req = $.ajax({
+            url : '/atualizar',
+            type : 'POST',
+            data: {colab_id: colab_id, nome: nome, cargo: cargo, risco_c: risco_c, risco_e: risco_e}
+          });
+          document.getElementById('Nome'+colab_id).innerHTML = nome;
+          document.getElementById('Cargo'+colab_id).innerHTML = cargo;
+          document.getElementById('Risco_c'+colab_id).innerHTML = risco_c;
+          document.getElementById('Risco_e'+colab_id).innerHTML = risco_e;
+          console.log(risco_c);
+          console.log(risco_e);
+
+
+
+        });
+
+        $('#Deletar').on('click', function(){
+          $('#editar-modal').modal('hide');
+
+          req = $.ajax({
+            url: '/deletar',
+            type: 'POST',
+            data: {colab_id: colab_id}
+          });
+
+          req.done(function(data){
+            document.getElementById(colab_id).remove();
+
+          });
+
+        });
+
+    });
+
+</script>
+
+{% endblock %}
+
+
+{% block main %}
+    <table class="table table-striped" id="tabela">
+        <button type="button" class="btn btn-primary" id="Novo" data-toggle="modal" data-target="#novo-modal" style="margin-bottom: 15px;">Novo</button>
+    <thead>
+        <tr>
+            <th style="vertical-align: middle; text-align: center;">Grupo</th>
+            <th style="vertical-align: middle; text-align: center;">Unidade</th>
+            <th style="vertical-align: middle; text-align: center;">Nome</th>
+            <th style="vertical-align: middle; text-align: center;">Cargo</th>
+            <th style="text-align: center">Risco de Saída - Colaborador</th>
+            <th style="text-align: center">Risco de Saída - Empresa</th>
+        </tr>
+    </thead>
+    <tbody>
+      {% for row in result%}
+        <tr id="{{row[0]}}">
+            <td style="text-align: center;">{{row[1]}}</td>
+            <td style="text-align: center;">{{row[2]}}</td>
+            <td style="text-align: center;" id="Nome{{row[0]}}">{{row[3]}}</td>
+            <td style="text-align: center;" id="Cargo{{row[0]}}">{{row[4]}}</td>
+            <td style="text-align: center;" id="Risco_c{{row[0]}}">{{row[6]}}</td>
+            <td style="text-align: center;" id="Risco_e{{row[0]}}">{{row[7]}}</td>
+            <td style="text-align: center;"><button type="button" class="btn btn-primary Editar" id="Editar" data-toggle="modal" data-target="#editar-modal">Editar</button></td>
+        </tr>
+        {%endfor%}
+    </tbody>
+    </table>
+
+
+    <!-- Modal para add uma nova linha no farol-->
+    <div class="modal fade" id="novo-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true" >
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="exampleModalLabel">Novo</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <form>
+                  <div class="form-group">
+                    
+                    <label for="recipient-name" style="display: flex;" class="col-form-label">Grupo</label>
+                    <select class="form-control" name="" id="group" style="width: 100%;">
+                      
+                      <option type="text" class ="form-control" disabled selected>Grupos</option>
+                      <option type="text" class ="form-control" >Visão </option>
+                      <option type="text" class ="form-control" >Fortaleza</option>
+                      <option type="text" class ="form-control" >Base</option>
+                      <option type="text" class ="form-control" >Planalto</option>
+                      <option type="text" class ="form-control" >Avançar</option>
+                      <option type="text" class ="form-control" >Crescer</option>
+                      <option type="text" class ="form-control" >Sul</option>
+                    
+                    </select>
+                  
+                  </div>
+                  <div class="form-group">
+                    
+                    <label for="recipient-name" style="display: flex;" class="col-form-label">Unidade</label>
+                    <select class="form-control" name="" id="unit" style="width: 100%;">
+                    </select>
+                  
+                  </div>
+                
+                <div class="form-group">
+                  <label for="recipient-name" style="display: flex;" class="col-form-label">Nome:</label>
+                  <input type="text" class="form-control" style="width: 100%" id="Nome" value="">
+                  
+                </div>
+                <div class="form-group">
+                  <label for="recipient-name" style="display: flex;" class="col-form-label">Setor</label>
+                  <select class="form-control" name="" id="setor" style=" width: 100%;">
+                    
+                    <option type="text" class ="form-control" selected disabled>Setor</option>
+                  
+                  </select>
+                </div>
+  
+                <div class="form-group">
+                  <label for="recipient-name" style="display: flex;" class="col-form-label">Cargo</label>
+                  <select class="form-control" name="" id="cargo" style=" width: 100%;">
+                  
+
+                  </select>
+                </div>
+                <label for="recipient-name" style="display: flex; margin-left:160px;" class="col-form-label"><b> Risco de Saida</b></label>
+                  
+                  <div class="form-group">
+                    
+                    <label for="recipient-name" style="display: flex; ;" class="col-form-label">Colaborador</label>
+                    <select class="form-control" name="" id="risco_c" style=" width: 100%;">
+                      
+                      <option type="text" class ="form-control" >Sim</option>
+                      <option type="text" class ="form-control" >Não</option>
+                    
+                    </select>
+                  
+                  </div>
+
+                  <div class="form-group">
+                    
+                    <label for="recipient-name" style="display: flex; ;" class="col-form-label">Empresa</label>
+                    <select class="form-control" name="" id="risco_e" style="width: 100%;">
+                      
+                      <option type="text" class ="form-control" >Sim</option>
+                      <option type="text" class ="form-control" >Não</option>
+                    
+                    </select>
+                  
+                  </div>
+                
+              
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+              <button type="button" class="btn btn-primary " id="Salvar">Salvar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    <!-- Modal para editar uma linha no farol-->
+    <div class="modal fade" id="editar-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true" >
+      <div class="modal-dialog " role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">Editar</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <form>
+              
+              <div class="form-group">
+                <label for="recipient-name" style="display: flex;" class="col-form-label">Nome:</label>
+                <input type="text" class="form-control" style="width: 100%" id="e_Nome" value="">
+                
+              </div>
+              <div class="form-group">
+                <label for="recipient-name" style="display: flex;" class="col-form-label">Setor</label>
+                <select class="form-control" name="" id="e_setor" style=" width: 100%;">
+                  
+                  <option type="text" class ="form-control" selected disabled>Setor</option>
+                
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="recipient-name" style="display: flex;" class="col-form-label">Cargo</label>
+                <select class="form-control" name="" id="e_cargo" style=" width: 100%;">
+                
+
+                </select>
+              </div>
+              <label for="recipient-name" style="display: flex; margin-left:160px;" class="col-form-label"><b> Risco de Saida</b></label>
+                
+                <div class="form-group">
+                  
+                  <label for="recipient-name" style="display: flex; ;" class="col-form-label">Colaborador</label>
+                  <select class="form-control" name="" id="e_risco_c" style=" width: 100%;">
+                    
+                    <option type="text" class ="form-control" >Sim</option>
+                    <option type="text" class ="form-control" >Não</option>
+                  
+                  </select>
+                
+                </div>
+
+                <div class="form-group">
+                  
+                  <label for="recipient-name" style="display: flex; ;" class="col-form-label">Empresa</label>
+                  <select class="form-control" name="" id="e_risco_e" style="width: 100%;">
+                    
+                    <option type="text" class ="form-control" >Sim</option>
+                    <option type="text" class ="form-control" >Não</option>
+                  
+                  </select>
+                
+                </div>
+              
+            
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-danger " data-toggle="modal" data-target="#deletar-modal">Deletar</button>
+            <button type="button" class="btn btn-primary " id="Atualizar" data-dismiss="modal">Atualizar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal para deletar uma linha no farol-->
+    <div class="modal fade" id="deletar-modal" tabindex="-1" role="dialog" area-hidden="true">
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Deletar</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <p>Tem certeza?</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-danger" data-dismiss="modal" id="Deletar">Deletar</button>
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+{% endblock %}

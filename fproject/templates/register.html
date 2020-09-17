@@ -1,0 +1,62 @@
+{% extends "layout.html" %}
+
+
+{% block title %}
+Buy
+{% endblock %}
+
+{% block script %}
+<script>
+
+    $(document).ready(function() {
+        
+        $('.updateButton').on('click', function() {
+            
+            username = document.querySelector("#user").value
+            password = document.querySelector("#password").value
+            cpassword = document.querySelector("#cpassword").value
+
+            if (username != "" && password != "" && cpassword == password) {
+
+                req = $.ajax({
+                    url : '/register',
+                    type : 'POST',
+                    data: { username : username, password : password}
+                });
+
+                req.done(function(data) {
+                    if (data.redirect) {
+                        window.location = "/";
+                    }
+                    else {
+                        document.querySelector('#random').style.color = "#ff0000";
+                        $('#random').text('username already taken');
+                        
+                        function fade_out() {
+                            $('#random').text("");
+                        }
+                        setTimeout(fade_out, 850);
+                    }
+                })
+            } 
+        });
+    });
+</script>
+{% endblock %}
+
+
+{% block main %}
+        <div class="form-group" >
+            <input type="text" formnovalidate="formnovalidate" class ="form-control" required autofocus placeholder="Usuário" id="user">
+        </div>
+        <div class="form-group" >
+            <input type="password" class ="form-control" required autofocus placeholder="Senha" id="password">
+        </div>
+        <div class="form-group" >
+            <input type="password" class ="form-control" required autofocus placeholder="Confirmar Senha" id="cpassword">
+        </div>
+        <div class="form-group" >
+            <span class="red" id="random"></span> 
+        </div>
+        <button class="btn btn-primary updateButton" type="submit" id="button">Entrar</button>
+{% endblock %}

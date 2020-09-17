@@ -1,0 +1,159 @@
+{% extends "layout.html" %}
+
+
+{% block title %}
+History
+{% endblock %}
+
+{% block script %}
+<script>
+  $(document).ready(function() {
+    
+    user_id = 0;
+    console.log(user_id);
+    $('.Editar').on('click', function() {
+      user_id = $(this).closest('tr').attr('id');
+      console.log(user_id);
+      $.each($("#user_groups option:selected"), function() {
+        $(this).prop('selected', false);
+      });
+
+            req = $.ajax({
+                url : '/admin',
+                type : 'POST',
+                data : { user_id : user_id}
+            });
+
+            req.done(function(data) {
+              document.querySelector('#recipient-name').value = data.user[1];
+              user_groups = data.user[4].split(',');
+              
+              for (i = 0; i < 7; i++) {
+                for (j = 0; j < user_groups.length; j++) {
+                  if (document.getElementById(data.g_list[i]).value == user_groups[j])
+                    document.getElementById(data.g_list[i]).selected = true;
+                }
+              }
+
+              
+
+            })
+      }); 
+
+    $('#Atualizar').on('click', function() {
+
+      s_groups = $('#user_groups').val();
+      s_username = $('#recipient-name').val();
+      s_usertype = $('#user_type').val();
+      s_groups = s_groups.toString();
+      console.log(s_groups);
+    
+
+
+        req = $.ajax({
+            url : '/update',
+            type : 'POST',
+            data : { s_groups: s_groups, s_username : s_username, s_usertype: s_usertype, user_id: user_id}
+        });
+        req.done(function(data) {
+          document.getElementById('User'+user_id).innerHTML = data.result[1];
+          document.getElementById('Group'+user_id).innerHTML = data.result[4];
+          document.getElementById('Type'+user_id).innerHTML = data.result[3];
+
+
+        });
+    
+    });
+
+
+  });
+
+
+
+</script>
+
+{% endblock %}
+
+{% block style%}
+
+{% endblock%}
+
+{% block main %}
+    <table class="table table-striped">
+    <thead>
+        <tr>
+            <th style="vertical-align: middle; text-align: center;">Usuário</th>
+            <th style="vertical-align: middle; text-align: center;">Tipo</th>
+            <th style="vertical-align: middle; text-align: center;">Grupos</th>
+            <th style="vertical-align: middle; text-align: center;">Editar</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in users %}
+        <tr id ="{{row[0]}}">
+            <td style="text-align: center;" id="User{{row[0]}}">{{row[1]}}</td>
+            <td style="text-align: center;" id="Type{{row[0]}}">{{row[3]}}</td>
+            <td style="text-align: center;" id="Group{{row[0]}}">{{row[4]}}</td>
+            <td style="text-align: center;"> 
+                <!-- Open a modal box to edit the user -->
+                <button type="button" class="btn btn-primary Editar" data-toggle="modal" data-target="#modal" id="{{row[0]}}">
+                    Editar
+                </button>
+            </td>
+        
+        </tr>
+        {% endfor %}
+    </tbody>
+    </table>
+  
+    <!-- Button trigger modal -->
+    
+    <!-- Modal -->
+    <div class="modal fade" id="modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true" va>
+      <div class="modal-dialog" role="document">
+        <div class="modal-content" >
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel" >Editar</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <form>
+              <div class="form-group">
+                <label for="recipient-name" style="display: flex;" class="col-form-label">Usuário:</label>
+                <input type="text" class="form-control" style="width: 100%" id="recipient-name" value="">
+
+              <div class="form-group">
+                <label for="recipient-name" style="display: flex;" class="col-form-label">Tipo de Usuário:</label>
+                <select class="form-control" name="" id="user_type"style="width: 100%;">
+                  <option type="text" class ="form-control" selected >Admin</option>
+                  <option type="text" class ="form-control" >GPM</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="recipient-name" style="display: flex;" class="col-form-label">Grupos:</label>
+                <select class="custom-select" multiple name="" id="user_groups" style="display:grid;"  size="3">
+                  <option type="text" class ="form-control" id="Visão">Visão</option>
+                  <option type="text" class ="form-control" id="Base">Base</option>
+                  <option type="text" class ="form-control" id="Fortaleza">Fortaleza</option>
+                  <option type="text" class ="form-control" id="Avançar">Avançar</option>
+                  <option type="text" class ="form-control" id="Planalto">Planalto</option>
+                  <option type="text" class ="form-control" id="Crescer">Crescer</option>
+                  <option type="text" class ="form-control" id="Sul">Sul</option>
+                </select>
+              </div>
+            
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+            <button type="button" class="btn btn-primary " id="Atualizar">Atualizar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+{% endblock %}
